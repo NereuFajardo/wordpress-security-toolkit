@@ -2,6 +2,8 @@
 
 A suite of automated actions to ensure the security of your wordpress.
 
+Ubuntu 22.04
+
 ## Scripts
 
 - **salt-keys.sh**: Generates new keys to ensure the renewal of the encryption of your access data.
