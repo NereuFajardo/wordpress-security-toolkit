@@ -8,6 +8,16 @@ do
     # Cria um backup do arquivo wp-config.php
     cp $config_file "${config_file}.bak"
 
+    # Deleta as chaves antigas
+    sed -i '/define(.*AUTH_KEY/d' $config_file
+    sed -i '/define(.*SECURE_AUTH_KEY/d' $config_file
+    sed -i '/define(.*LOGGED_IN_KEY/d' $config_file
+    sed -i '/define(.*NONCE_KEY/d' $config_file
+    sed -i '/define(.*AUTH_SALT/d' $config_file
+    sed -i '/define(.*SECURE_AUTH_SALT/d' $config_file
+    sed -i '/define(.*LOGGED_IN_SALT/d' $config_file
+    sed -i '/define(.*NONCE_SALT/d' $config_file
+
     # Busca novas salt keys da API do WordPress
     new_keys=$(curl -s https://api.wordpress.org/secret-key/1.1/salt/)
 
@@ -17,18 +27,8 @@ do
         continue  # Pula para o próximo arquivo se falhar em obter as keys
     fi
 
-    # Substitui as chaves antigas pelas novas chaves no arquivo
-    awk -v new_keys="$new_keys" '
-        /define\(.*AUTH_KEY/ {$0 = "define('AUTH_KEY', '" new_keys "');"}
-        /define\(.*SECURE_AUTH_KEY/ {$0 = "define('SECURE_AUTH_KEY', '" new_keys "');"}
-        /define\(.*LOGGED_IN_KEY/ {$0 = "define('LOGGED_IN_KEY', '" new_keys "');"}
-        /define\(.*NONCE_KEY/ {$0 = "define('NONCE_KEY', '" new_keys "');"}
-        /define\(.*AUTH_SALT/ {$0 = "define('AUTH_SALT', '" new_keys "');"}
-        /define\(.*SECURE_AUTH_SALT/ {$0 = "define('SECURE_AUTH_SALT', '" new_keys "');"}
-        /define\(.*LOGGED_IN_SALT/ {$0 = "define('LOGGED_IN_SALT', '" new_keys "');"}
-        /define\(.*NONCE_SALT/ {$0 = "define('NONCE_SALT', '" new_keys "');"}
-        {print}
-    ' $config_file > temp_file && mv temp_file $config_file
+    # Adiciona as novas chaves
+    echo "$new_keys" >> $config_file
 
     echo "Keys atualizadas com sucesso em: $config_file"
 done
